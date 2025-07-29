@@ -24,7 +24,17 @@ func GetItemHandler(context *gin.Context) {
 
 	item, err := GetItem(id)
 	if err != nil {
-		slog.Error("Failed to retrieve item", "id", id, "error", err)
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to retrieve item", "id", id, "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
+		slog.Error("Unexpected error when retrieving item", "id", id, "error", err)
 		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
 			Success: false,
 			Message: "Failed to retrieve item",

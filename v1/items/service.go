@@ -3,6 +3,7 @@ package items
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	db "github.com/MattyMcF4tty/InventoryManager-backend/v1/database"
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/schemas"
@@ -21,13 +22,35 @@ func GetItem(id int8) (schemas.Item, error) {
 		Execute()
 
 	if err != nil {
-		return schemas.Item{}, err
+		// Set the default error code and message
+		code := http.StatusInternalServerError
+		message := "An error occurred while retrieving the item"
+
+		// Check if the error is a Postgres error
+		// If true we update the code and message accordingly
+		if status := utils.PostgresToHTTPError(err); status != nil {
+			code = *status
+
+			if code == http.StatusNotFound {
+				message = "Item not found"
+			}
+		}
+
+		return schemas.Item{}, &schemas.CustomError{
+			Code:    code,
+			Message: message,
+			Details: fmt.Sprintf("Error retrieving item with ID %d: %v", id, err),
+		}
 	}
 
 	var item schemas.Item
 	err = json.Unmarshal(data, &item)
 	if err != nil {
-		return schemas.Item{}, err
+		return schemas.Item{}, &schemas.CustomError{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to parse item data",
+			Details: fmt.Sprintf("Error parsing item data for ID %d: %v", id, err),
+		}
 	}
 
 	return item, nil
