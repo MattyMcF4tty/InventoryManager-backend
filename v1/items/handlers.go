@@ -74,6 +74,16 @@ func UpdateItemHandler(context *gin.Context) {
 
 	item, err := UpdateItem(id, updates)
 	if err != nil {
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to update item", "id", id, "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
 		slog.Error("Failed to update item", "id", id, "error", err)
 		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
 			Success: false,
@@ -121,6 +131,16 @@ func CreateItemHandler(context *gin.Context) {
 
 	item, err := CreateItem(newItem)
 	if err != nil {
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to create item", "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
 		slog.Error("Failed to create item", "error", err)
 		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
 			Success: false,
@@ -149,6 +169,16 @@ func DeleteItemHandler(context *gin.Context) {
 
 	err = DeleteItem(id)
 	if err != nil {
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to delete item", "id", id, "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
 		slog.Error("Failed to delete item", "id", id, "error", err)
 		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
 			Success: false,
