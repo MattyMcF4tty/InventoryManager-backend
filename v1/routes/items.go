@@ -6,6 +6,7 @@ import (
 )
 
 func SetupItemRoutes(routes *gin.RouterGroup) {
+	routes.GET("/", items.GetPagedItemsHandler)
 	routes.GET("/:id", items.GetItemHandler)
 	routes.PATCH("/:id", items.UpdateItemHandler)
 	routes.POST("/", items.CreateItemHandler)

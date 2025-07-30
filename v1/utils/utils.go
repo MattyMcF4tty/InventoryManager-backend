@@ -35,3 +35,7 @@ func CheckRequiredFields(itemMap map[string]interface{}, requiredFields []string
 	}
 	return nil
 }
+
+func InRanage(value, min, max int) bool {
+	return value >= min && value <= max
+}

@@ -3,12 +3,14 @@ package items
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/schemas"
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/utils"
 	"github.com/gin-gonic/gin"
 )
 
+// protectedFields contains fields that the user should not be able to modify
 var protectedFields = []string{"id", "created_at", "updated_at", "deleted_at"}
 
 func GetItemHandler(context *gin.Context) {
@@ -190,5 +192,54 @@ func DeleteItemHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, schemas.ApiResponse{
 		Success: true,
 		Message: "Item deleted successfully",
+	})
+}
+
+func GetPagedItemsHandler(context *gin.Context) {
+	pageStr := context.Query("page")
+	pageSizeStr := context.Query("page-size")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		context.JSON(http.StatusBadRequest, schemas.ApiResponse{
+			Success: false,
+			Message: "Invalid page number",
+		})
+		return
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		context.JSON(http.StatusBadRequest, schemas.ApiResponse{
+			Success: false,
+			Message: "Invalid page size",
+		})
+		return
+	}
+
+	items, err := getPagedItems(page, pageSize)
+	if err != nil {
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to retrieve paged items", "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
+		slog.Error("Failed to retrieve paged items", "error", err)
+		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
+			Success: false,
+			Message: "Failed to retrieve paged items",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, schemas.ApiResponse{
+		Success: true,
+		Message: "Paged items retrieved successfully",
+		Data:    items,
 	})
 }
