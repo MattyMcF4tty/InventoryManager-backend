@@ -30,12 +30,12 @@ func RemoveProtectedFields(itemMap map[string]interface{}, protectedFields []str
 func CheckRequiredFields(itemMap map[string]interface{}, requiredFields []string) error {
 	for _, field := range requiredFields {
 		if _, exists := itemMap[field]; !exists {
-			return fmt.Errorf("Missing required field: %s", field)
+			return fmt.Errorf("missing required field: %s", field)
 		}
 	}
 	return nil
 }
 
-func InRanage(value, min, max int) bool {
+func InRange(value, min, max int) bool {
 	return value >= min && value <= max
 }

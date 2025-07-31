@@ -217,7 +217,7 @@ func GetPagedItemsHandler(context *gin.Context) {
 		return
 	}
 
-	items, err := getPagedItems(page, pageSize)
+	items, count, err := getPagedItems(page, pageSize)
 	if err != nil {
 		if utils.IsCustomError(err) {
 			customErr := err.(*schemas.CustomError)
@@ -240,6 +240,11 @@ func GetPagedItemsHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, schemas.ApiResponse{
 		Success: true,
 		Message: "Paged items retrieved successfully",
-		Data:    items,
+		Data: map[string]interface{}{
+			"count":    count,
+			"page":     page,
+			"pageSize": pageSize,
+			"items":    items,
+		},
 	})
 }
