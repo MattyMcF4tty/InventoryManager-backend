@@ -123,12 +123,12 @@ func CreateItemHandler(context *gin.Context) {
 	}
 
 	newItem := schemas.Item{
-		Name:        itemData["name"].(string),
-		Description: itemData["description"].(string),
-		Quantity:    int8(itemData["quantity"].(float64)),
-		Price:       itemData["price"].(float64),
-		SupplierId:  int8(itemData["supplier_id"].(float64)),
-		Category:    itemData["category"].(string),
+		Name:          itemData["name"].(string),
+		Description:   itemData["description"].(string),
+		Quantity:      int8(itemData["quantity"].(float64)),
+		PurchasePrice: itemData["purchase_price"].(float64),
+		SupplierId:    int8(itemData["supplier_id"].(float64)),
+		Category:      itemData["category"].(string),
 	}
 
 	item, err := CreateItem(newItem)
@@ -244,7 +244,7 @@ func GetPagedItemsHandler(context *gin.Context) {
 			"count":    count,
 			"page":     page,
 			"pageSize": pageSize,
-			"items":    items,
+			"data":     items,
 		},
 	})
 }
