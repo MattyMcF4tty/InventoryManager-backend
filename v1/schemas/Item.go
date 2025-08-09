@@ -9,6 +9,7 @@ type Item struct {
 	Category      string  `json:"category"`
 	ImageUrl      *string `json:"image_url,omitempty"`
 	SupplierId    int8    `json:"supplier_id"`
+	Notes         string  `json:"notes"`
 
 	CreatedAt string  `json:"created_at"`
 	UpdatedAt string  `json:"updated_at"`

@@ -20,6 +20,7 @@ func GetItem(id int8) (schemas.Item, error) {
 		From("items").
 		Select("*", "", false).
 		Eq("id", idStr).
+		Is("deleted_at", "null").
 		Single().
 		Execute()
 
@@ -65,7 +66,12 @@ func UpdateItem(id int8, updates map[string]interface{}) (schemas.Item, error) {
 	// Add updated_at field
 	updates["updated_at"] = utils.GetCurrentISODate()
 
-	data, _, err := client.From("items").Update(updates, "", "").Eq("id", idStr).Single().Execute()
+	data, _, err := client.
+		From("items").
+		Update(updates, "", "").
+		Eq("id", idStr).
+		Is("deleted_at", "null").
+		Single().Execute()
 
 	if err != nil {
 		// Set the default error code and message
@@ -109,7 +115,11 @@ func CreateItem(item schemas.Item) (schemas.Item, error) {
 	item.CreatedAt = utils.GetCurrentISODate()
 	item.UpdatedAt = utils.GetCurrentISODate()
 
-	data, _, err := client.From("items").Insert(item, false, "", "", "").Single().Execute()
+	data, _, err := client.
+		From("items").
+		Insert(item, false, "", "", "").
+		Single().
+		Execute()
 
 	if err != nil {
 		// Set the default error code and message
@@ -151,7 +161,12 @@ func DeleteItem(id int8) error {
 	client := db.Connect()
 	idStr := fmt.Sprintf("%d", id)
 
-	_, _, err := client.From("items").Delete("", "").Eq("id", idStr).Execute()
+	_, _, err := client.
+		From("items").
+		Delete("", "").
+		Eq("id", idStr).
+		Is("deleted_at", "null").
+		Execute()
 
 	if err != nil {
 		// Set the default error code and message
@@ -183,7 +198,9 @@ func getPagedItems(page int, pageSize int) ([]schemas.Item, *int64, error) {
 
 	_, count, err := client.
 		From("items").
-		Select("", "exact", false).Execute()
+		Select("", "exact", false).
+		Is("deleted_at", "null").
+		Execute()
 
 	if err != nil {
 		return nil, nil, &schemas.CustomError{
