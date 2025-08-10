@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "github.com/MattyMcF4tty/InventoryManager-backend/v1/database"
+	suppliercontactinfo "github.com/MattyMcF4tty/InventoryManager-backend/v1/routes/supplier-contact-info"
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/schemas"
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/utils"
 )
@@ -54,9 +55,21 @@ func GetSupplier(id int8) (schemas.Supplier, error) {
 		}
 	}
 
+	supplierContactInfo, err := suppliercontactinfo.GetSupplierContactInfo(supplier.Id)
+
+	if err != nil {
+		return schemas.Supplier{}, &schemas.CustomError{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get contact information for supplier",
+			Details: fmt.Sprintf("Failed to get contact info for supplier ID %d: %v", id, err),
+		}
+	}
+
 	// We make sure that the contact info is an empty array before returning it
-	if supplier.ContactInfo == nil {
-		supplier.ContactInfo = []*schemas.SupplierContactInfo{}
+	if supplierContactInfo == nil {
+		supplier.ContactInfo = []schemas.SupplierContactInfo{}
+	} else {
+		supplier.ContactInfo = supplierContactInfo
 	}
 
 	return supplier, nil
