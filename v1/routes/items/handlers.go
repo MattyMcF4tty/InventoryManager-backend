@@ -248,3 +248,58 @@ func GetPagedItemsHandler(context *gin.Context) {
 		},
 	})
 }
+
+func GetPagedItemSearchHandler(context *gin.Context) {
+	pageStr := context.Query("page")
+	pageSizeStr := context.Query("page-size")
+	nameStr := context.Query("name")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		context.JSON(http.StatusBadRequest, schemas.ApiResponse{
+			Success: false,
+			Message: "Invalid page number",
+		})
+		return
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		context.JSON(http.StatusBadRequest, schemas.ApiResponse{
+			Success: false,
+			Message: "Invalid page size",
+		})
+		return
+	}
+
+	items, count, err := PagedItemSearch(nameStr, page, pageSize)
+	if err != nil {
+		if utils.IsCustomError(err) {
+			customErr := err.(*schemas.CustomError)
+			slog.Error("Failed to retrieve paged items from search", "error", customErr.Details)
+			context.JSON(customErr.Code, schemas.ApiResponse{
+				Success: false,
+				Message: customErr.Message,
+			})
+			return
+		}
+
+		slog.Error("Failed to retrieve paged item search", "error", err)
+		context.JSON(http.StatusInternalServerError, schemas.ApiResponse{
+			Success: false,
+			Message: "Failed to retrieve paged items from search",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, schemas.ApiResponse{
+		Success: true,
+		Message: "Paged items retrieved successfully from search",
+		Data: map[string]interface{}{
+			"count":    count,
+			"page":     page,
+			"pageSize": pageSize,
+			"data":     items,
+		},
+	})
+}

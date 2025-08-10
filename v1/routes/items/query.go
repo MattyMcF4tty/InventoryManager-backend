@@ -35,7 +35,7 @@ var allowedQueryParameters = map[string]struct{}{
 	"sort_order":   {},
 }
 
-func queryItems(queryParams map[string][]string) ([]schemas.Item, *int64, error) {
+func QueryItems(queryParams map[string][]string) ([]schemas.Item, *int64, error) {
 
 	client := database.Connect()
 	query := client.From("items").Select("*", "exact", false)
