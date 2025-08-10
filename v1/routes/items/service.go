@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"strings"
 
 	db "github.com/MattyMcF4tty/InventoryManager-backend/v1/database"
 	"github.com/MattyMcF4tty/InventoryManager-backend/v1/schemas"
@@ -56,6 +58,8 @@ func GetItem(id int8) (schemas.Item, error) {
 		}
 	}
 
+	item.ImageUrl = GetItemImage(item.Id)
+
 	return item, nil
 }
 
@@ -95,8 +99,8 @@ func UpdateItem(id int8, updates map[string]interface{}) (schemas.Item, error) {
 		}
 	}
 
-	var item schemas.Item
-	err = json.Unmarshal(data, &item)
+	var updatedItem schemas.Item
+	err = json.Unmarshal(data, &updatedItem)
 
 	if err != nil {
 		return schemas.Item{}, &schemas.CustomError{
@@ -106,7 +110,9 @@ func UpdateItem(id int8, updates map[string]interface{}) (schemas.Item, error) {
 		}
 	}
 
-	return item, nil
+	updatedItem.ImageUrl = GetItemImage(updatedItem.Id)
+
+	return updatedItem, nil
 }
 
 func CreateItem(item schemas.Item) (schemas.Item, error) {
@@ -154,6 +160,8 @@ func CreateItem(item schemas.Item) (schemas.Item, error) {
 		}
 	}
 
+	createdItem.ImageUrl = GetItemImage(createdItem.Id)
+
 	return createdItem, nil
 }
 
@@ -193,7 +201,7 @@ func DeleteItem(id int8) error {
 	return nil
 }
 
-func getPagedItems(page int, pageSize int) ([]schemas.Item, *int64, error) {
+func GetPagedItems(page int, pageSize int) ([]schemas.Item, *int64, error) {
 	client := db.Connect()
 
 	_, count, err := client.
@@ -269,5 +277,19 @@ func getPagedItems(page int, pageSize int) ([]schemas.Item, *int64, error) {
 		}
 	}
 
+	for i := 0; i < len(items); i++ {
+		items[i].ImageUrl = GetItemImage(items[i].Id)
+	}
+
 	return items, &count, nil
+}
+
+func GetItemImage(id int8) *string {
+	baseURL := os.Getenv("SUPABASE_URL")
+	bucket := "item-images"
+	path := fmt.Sprintf("%d", id)
+
+	publicURL := fmt.Sprintf("%s/storage/v1/object/public/%s/%s", strings.TrimRight(baseURL, "/"), bucket, path)
+	url := publicURL
+	return &url
 }

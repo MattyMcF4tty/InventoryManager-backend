@@ -217,7 +217,7 @@ func GetPagedItemsHandler(context *gin.Context) {
 		return
 	}
 
-	items, count, err := getPagedItems(page, pageSize)
+	items, count, err := GetPagedItems(page, pageSize)
 	if err != nil {
 		if utils.IsCustomError(err) {
 			customErr := err.(*schemas.CustomError)
