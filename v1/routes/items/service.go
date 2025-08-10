@@ -298,7 +298,7 @@ func PagedItemSearch(name string, page int, pageSize int) ([]schemas.Item, *int6
 	_, count, err := client.
 		From("items").
 		Select("", "exact", false).
-		Ilike("name", "%"+name+"%").
+		Ilike("name", name+"%").
 		Is("deleted_at", "null").
 		Execute()
 
@@ -332,7 +332,7 @@ func PagedItemSearch(name string, page int, pageSize int) ([]schemas.Item, *int6
 	data, _, err := client.
 		From("items").
 		Select("*", "", false).
-		Ilike("name", "%"+name+"%").
+		Ilike("name", name+"%").
 		Order("name", &postgrest.OrderOpts{Ascending: true}).
 		Range(pageStartIndex, pageEndIndex-1, "").
 		Execute()
